@@ -8,11 +8,13 @@ var itemArray=new Array();
 var date;//the start date of order-cycle
 var startRow=1;//row of start date
 var message="Please enter the start date of your order in the format <month name> <date> <year> (Ex. May 5 2017)";
+var doc = DocumentApp.openById('1ySkN2XEyP-WGuNLIMgSTlJ1htn2W9Sy0KzsYOCFTP6U');//Change this to a document on google drive
 var ss = SpreadsheetApp.openByUrl("https://docs.google.com/a/iastate.edu/spreadsheets/d/1hTkHMmANz7DqmRXeEPiIJj843nelFUec-4OxLg2EGfk/edit?usp=sharing");//Change this to original sheet url
 SpreadsheetApp.setActiveSheet(ss.getSheets()[0]);
 var data= ss.getDataRange().getValues();
 /**
 * Adds a new item to the list
+* @param takes in item name to be added  to the order list
 */
 function addItem(itemName)
 {
@@ -50,9 +52,9 @@ else
 inputBox();
 
 }
-
-
-
+/**
+* Checks whether the entered date exists in the sheet
+*/
 function checkStartDate()
 {
 for(var k=1;k<data.length;k++)
@@ -81,6 +83,9 @@ var ts=ss.getActiveSheet();
 ts.clear();
 ts.getRange(1, 1,orderList.length,orderList[0].length).setValues(orderList);//ss.getLastRow()+1
 }
+/**
+* Set required trigger to this
+*/
 function main()
 {
 inputBox();
@@ -118,6 +123,9 @@ function binarySearch(searchElement, searchArray) {
     return -1; //nothing found
 
 }
+/**
+* The box to enter date and select functinality 
+*/
 function inputBox()
 {
 // Display a dialog box with a title, message, input field, and "Yes" and "No" buttons. The
@@ -145,33 +153,26 @@ else if (response.getSelectedButton() == ui.Button.CANCEL) {
    Logger.log('The user clicked the close button in the dialog\'s title bar.');
  }
 }
-
-
+/**
+* Generates individual order documents on google drive
+*/
 function generateDocs()
 {
 if(checkStartDate())
 {
 // Open a document by ID.
 var counter=1;
-var doc = DocumentApp.openById('1ySkN2XEyP-WGuNLIMgSTlJ1htn2W9Sy0KzsYOCFTP6U');
 var items=new Array();
 var finalList=new Array();
 var body = doc.getBody();
 var text = body.editAsText();
-//text.insertText(0, 'Sprout\n');counter++;
+//text.insertText(0, 'Sprout\n');
 for(var i=1; i<data.length; i++)
 {
-//for(var j=1; j<data[0].length; j++)
-//{
-
-
- // Use editAsText to obtain a single text element containing
- // all the characters in the document.
- 
  text.appendText("Sprout\n");
- text.appendText(data[i][2]+'\n');counter++;
- text.appendText(data[i][1]+'\n');counter++;
- text.appendText(data[i][3]+'\n');counter++;//4, 13, 19 are
+ text.appendText(data[i][2]+'\n');
+ text.appendText(data[i][1]+'\n');
+ text.appendText(data[i][3]+'\n');//4, 13, 19 are
  var arrCount=0;
  if(data[i][4])
  {
@@ -185,7 +186,7 @@ for(var i=1; i<data.length; i++)
  {
  for(var x=13; x<=17; x++){
  items.push(data[i][x]);
- //body.appendListItem(data[i][x]);counter++;
+ //body.appendListItem(data[i][x]);
  }
  }
  
@@ -193,16 +194,10 @@ for(var i=1; i<data.length; i++)
  {
  for(var x=19; x<=31; x++){
  items.push(data[i][x]);
- //body.appendListItem(data[i][x]);counter++;
+ //body.appendListItem(data[i][x]);
  }
  }
- 
- 
- 
- 
- 
- 
- // finalList.push([items[0],1]);//add first item to final list
+  // finalList.push([items[0],1]);//add first item to final list
  for(var y=0;y<items.length;y++)
  {
  var ind=binarySearch(items[y],finalList);//look for each item
@@ -218,16 +213,9 @@ for(var i=1; i<data.length; i++)
  }
  finalList=new Array();
  items=new Array();
- 
- 
- 
- 
- 
-
  body.appendPageBreak();
-  text.appendText('\n\r');
- //body.insertPageBreak(counter+1);
-//}
+text.appendText('\n\r');
+
 
 }
 }

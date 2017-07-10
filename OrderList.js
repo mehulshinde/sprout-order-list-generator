@@ -8,7 +8,7 @@ var itemArray=new Array();
 var date;//the start date of order-cycle
 var startRow=1;//row of start date
 var message="Please enter the start date of your order in the format <month name> <date> <year> (Ex. May 5 2017)";
-var doc = DocumentApp.openById('1ySkN2XEyP-WGuNLIMgSTlJ1htn2W9Sy0KzsYOCFTP6U');//Change this to a document on google drive
+var doc = DocumentApp.openById('1gEP2M5LNAjJGyCS8YUYcKRwsvCkkVSukcGfXvAiFNTA');//Change this to a document on google drive
 var ss = SpreadsheetApp.openByUrl("https://docs.google.com/a/iastate.edu/spreadsheets/d/1hTkHMmANz7DqmRXeEPiIJj843nelFUec-4OxLg2EGfk/edit?usp=sharing");//Change this to original sheet url
 SpreadsheetApp.setActiveSheet(ss.getSheets()[0]);
 var data= ss.getDataRange().getValues();
@@ -144,7 +144,7 @@ function inputBox()
  }
 if(response2.getSelectedButton()==ui.Button.YES)
 {
-date=response.getResponseText();
+date=response2.getResponseText();
 generateDocs();
 }
 else if (response.getSelectedButton() == ui.Button.CANCEL) {
@@ -164,10 +164,12 @@ if(checkStartDate())
 var counter=1;
 var items=new Array();
 var finalList=new Array();
+clearBodyFunction();
 var body = doc.getBody();
+//body.clear();
 var text = body.editAsText();
 //text.insertText(0, 'Sprout\n');
-for(var i=1; i<data.length; i++)
+for(var i=startRow; i<data.length; i++)
 {
  text.appendText("Sprout\n");
  text.appendText(data[i][2]+'\n');
@@ -221,6 +223,13 @@ text.appendText('\n\r');
 }
 else
 inputBox();
+}
+/**
+* Clears the document
+*/
+function clearBodyFunction()
+{
+doc.getBody().clear();
 }
 
 

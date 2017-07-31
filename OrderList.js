@@ -7,11 +7,68 @@ var orderList=new Array();//in column 0 is name of the item, column 1 has quanti
 var itemArray=new Array();
 var date;//the start date of order-cycle
 var startRow=1;//row of start date
+var d25start=4;//stores where the items for $25 customer starts 
+var d15start=0;//stores where the items for $15 customer starts 
+var d50start=0;//stores where the items for $50 customer starts
+var items25=0, items15=0, items50=0;//number of items in each customer type
 var message="Please enter the start date of your order in the format <month name> <date> <year> (Ex. May 5 2017)";
-var doc = DocumentApp.openById('1ySkN2XEyP-WGuNLIMgSTlJ1htn2W9Sy0KzsYOCFTP6U');//Change this to a document on google drive
-var ss = SpreadsheetApp.openByUrl("https://docs.google.com/a/iastate.edu/spreadsheets/d/1hTkHMmANz7DqmRXeEPiIJj843nelFUec-4OxLg2EGfk/edit?usp=sharing");//Change this to original sheet url
-SpreadsheetApp.setActiveSheet(ss.getSheets()[0]);
-var data= ss.getDataRange().getValues();
+var doc = DocumentApp.openById('1gEP2M5LNAjJGyCS8YUYcKRwsvCkkVSukcGfXvAiFNTA');//Change this to a document on google drive
+var ss;
+//= SpreadsheetApp.openByUrl("https://docs.google.com/spreadsheets/d/15cvGX_m78D_BY4zj9qPzi1Rk1bFCs_3FQbvWsttKJfA/edit#gid=0");//Change this to original sheet url
+var ssUrl;
+
+var data;//= ss.getDataRange().getValues();
+/**
+* Sets up the spreadsheet to be used and initializes 'data' 
+*
+*/
+function initializeOrder()
+{
+var ui = SpreadsheetApp.getUi();//for the ui
+Logger.log("Inside initializeOrder()");
+ssUrl = ui.prompt('Welcome!', "Paste the url of your spreadsheet below", ui.ButtonSet.OK_CANCEL);
+if(ssUrl.getSelectedButton() == ui.Button.OK){
+ //try
+ //{
+ ss = SpreadsheetApp.openByUrl(ssUrl.getResponseText());
+ Logger.log("name of ss: %s",ss.getName());
+ Logger.log("name of s0: %s",ss.getSheets()[0].getName());
+ //SpreadsheetApp.setActiveSheet(ss.getSheets()[0]);
+  ss.getSheets()[0].activate();
+ Logger.log("name of s0: %s",ss.getSheets().toString());
+ Logger.log("Found the spreadsheet!");
+ data= ss.getDataRange().getValues();
+    ss.insertSheet("Order");//Creates a new sheet in the given spreadsheet
+ //}
+// catch(e)
+ //{
+ //Logger.log("Initialization error %s",e.toString());
+ //ui.alert("oops","Didnt find it");
+ //initializeOrder();
+ //}
+ }
+}
+/**
+* Finds out Number of items for each type of customer and stores 
+* indices for items
+*/
+function getOrderSpecs()
+{
+for(var i=5; i<data[0].length;i++)
+{
+//if(data[0][i].toString().indexOf("Option")!=-1 && d25start==0)
+//d25start=i+1;
+if((data[0][i].toString().indexOf("Option")==-1 && data[0][i].toString().indexOf("Item")==-1 )&& d15start==0)
+d15start=i+1;
+else if((data[0][i].toString().indexOf("Option")==-1 && data[0][i].toString().indexOf("Item")==-1)&& d50start==0)
+d50start=i+1;
+}
+items25=d15start-1-4;
+items15=d50start-1-d15start;
+items50=data[0].length-d50start-1;
+Logger.log("Start indices %s - %s - %s",d25start,d15start,d50start);
+Logger.log("number of items %s - %s - %s",items25,items15,items50);
+}
 /**
 * Adds a new item to the list
 * @param takes in item name to be added  to the order list
@@ -28,14 +85,12 @@ itemArray.push(itemName);
 function scanForOrders()
 {
 //This part checks if the inputdate is present, and if it's present it starts scanning
-if(checkStartDate())
-{
-for(var i=startRow; i<data.length;i++)
+for(var i=1; i<data.length;i++)
 {
 for(var j=4;j<data[0].length;j++)
 {
 //12,18,32 columns are for comments and don't contain order items
-if(data[i][j] && (j!=12 && j!=18 && j!=32))//if the current element isn't null
+if(data[i][j] && (j!=d15start-1 && j!=d50start-1))//if the current element isn't null
 {
 var index=binarySearch(data[i][j],itemArray);
 if(index==-1)
@@ -43,20 +98,16 @@ addItem(data[i][j])
 else
 orderList[index][1]+=1;
 }
-
 }
 }
 generateList();
-}
-else
-inputBox();
-
 }
 /**
 * Checks whether the entered date exists in the sheet
 */
 function checkStartDate()
 {
+  /**
 for(var k=1;k<data.length;k++)
 {
 
@@ -71,14 +122,16 @@ message="Invalid date, please enter a valid date in the format <month name> <dat
 return false;
 }
 }
-
+*/
+  return true;
 }
 /**
 * Generates an order list
 */
 function generateList()
 {
-SpreadsheetApp.setActiveSheet(ss.getSheets()[1]);
+//SpreadsheetApp.setActiveSheet(ss.getSheets()[1]);
+  ss.getSheets()[1].activate();
 var ts=ss.getActiveSheet();
 ts.clear();
 ts.getRange(1, 1,orderList.length,orderList[0].length).setValues(orderList);//ss.getLastRow()+1
@@ -88,9 +141,12 @@ ts.getRange(1, 1,orderList.length,orderList[0].length).setValues(orderList);//ss
 */
 function main()
 {
+initializeOrder();
+getOrderSpecs();
 inputBox();
-//SpreadsheetApp.getUi().alert("Your order list is ready!");
+//ui.alert("Your order list is ready!");
 }
+
 /**
 * Implements binary search and returns the position the element is at. 
 * if not found, returns -1
@@ -128,24 +184,38 @@ function binarySearch(searchElement, searchArray) {
 */
 function inputBox()
 {
+var ui = SpreadsheetApp.getUi();//for the ui
 // Display a dialog box with a title, message, input field, and "Yes" and "No" buttons. The
  // user can also close the dialog by clicking the close button in its title bar.
- var ui = SpreadsheetApp.getUi();
+ 
  
  var response = ui.prompt('Welcome!', message, ui.ButtonSet.OK_CANCEL);
  // Process the user's response.
- var response2 = ui.prompt('Welcome!', "Do you also want to individual order lists?", ui.ButtonSet.YES_NO);
- if (response.getSelectedButton() == ui.Button.OK) {
  
-    date=response.getResponseText();
+ if (response.getSelectedButton() == ui.Button.OK) {
+	date=response.getResponseText();
+	if(checkStartDate()){
     scanForOrders();
+	}
+	else{
+		message="The date format wasn't valid or the date doesn't exist in the order cycle, please re-enter (Ex. May 5 2017)"
+		inputBox();
+	}
    
    
  }
+ var response2 = ui.prompt('Welcome!', "Do you also want to individual packing lists?", ui.ButtonSet.YES_NO);
 if(response2.getSelectedButton()==ui.Button.YES)
 {
-date=response.getResponseText();
+date=response2.getResponseText();
+if(checkStartDate()){
 generateDocs();
+}
+else
+{
+	message="The date format wasn't valid or the date doesn't exist in the order cycle, please re-enter (Ex. May 5 2017)"
+		inputBox();
+}
 }
 else if (response.getSelectedButton() == ui.Button.CANCEL) {
    Logger.log('User cancelled the process');
@@ -164,35 +234,37 @@ if(checkStartDate())
 var counter=1;
 var items=new Array();
 var finalList=new Array();
+clearBodyFunction();
 var body = doc.getBody();
+//body.clear();
 var text = body.editAsText();
 //text.insertText(0, 'Sprout\n');
-for(var i=1; i<data.length; i++)
+for(var i=startRow; i<data.length; i++)
 {
  text.appendText("Sprout\n");
  text.appendText(data[i][2]+'\n');
  text.appendText(data[i][1]+'\n');
  text.appendText(data[i][3]+'\n');//4, 13, 19 are
  var arrCount=0;
- if(data[i][4])
+ if(data[i][d25start])
  {
- for(var x=4; x<=11; x++)//copy items to array
+ for(var x=d25start; x<=(d25start+items25-1); x++)//copy items to array
  {
  items.push(data[i][x]);
  //body.appendListItem(data[i][x]).setGlyphType(DocumentApp.GlyphType.SQUARE_BULLET);counter++;
  }
  }
- else if(data[i][13])
+ else if(data[i][d15start])
  {
- for(var x=13; x<=17; x++){
+ for(var x=d15start; x<=(d15start+items15-1); x++){
  items.push(data[i][x]);
  //body.appendListItem(data[i][x]);
  }
  }
  
- else if(data[i][19])
+ else if(data[i][d50start])
  {
- for(var x=19; x<=31; x++){
+ for(var x=d50start; x<=(d50start+items50-1); x++){
  items.push(data[i][x]);
  //body.appendListItem(data[i][x]);
  }
@@ -221,6 +293,13 @@ text.appendText('\n\r');
 }
 else
 inputBox();
+}
+/**
+* Clears the document
+*/
+function clearBodyFunction()
+{
+doc.getBody().clear();
 }
 
 

@@ -1,7 +1,7 @@
 /**
 * 
 * @author Mehul Shinde
-* this script generates an order
+* this script generates an orde
 */
 var orderList=new Array();//in column 0 is name of the item, column 1 has quantity
 var itemArray=new Array();
@@ -25,24 +25,24 @@ var data;//= ss.getDataRange().getValues();
 function initializeOrder()
 {
 var ui = SpreadsheetApp.getUi();//for the ui
-Logger.log("Inside initializeOrder()");
+//Logger.log("Inside initializeOrder()");
 ssUrl = ui.prompt('Welcome!', "Paste the url of your spreadsheet below", ui.ButtonSet.OK_CANCEL);
 if(ssUrl.getSelectedButton() == ui.Button.OK){
  //try
  //{
  ss = SpreadsheetApp.openByUrl(ssUrl.getResponseText());
- Logger.log("name of ss: %s",ss.getName());
- Logger.log("name of s0: %s",ss.getSheets()[0].getName());
+ //Logger.log("name of ss: %s",ss.getName());
+ //Logger.log("name of s0: %s",ss.getSheets()[0].getName());
  //SpreadsheetApp.setActiveSheet(ss.getSheets()[0]);
   ss.getSheets()[0].activate();
- Logger.log("name of s0: %s",ss.getSheets().toString());
- Logger.log("Found the spreadsheet!");
+ //Logger.log("name of s0: %s",ss.getSheets().toString());
+ //Logger.log("Found the spreadsheet!");
  data= ss.getDataRange().getValues();
     ss.insertSheet("Order");//Creates a new sheet in the given spreadsheet
  //}
 // catch(e)
  //{
- //Logger.log("Initialization error %s",e.toString());
+ ////Logger.log("Initialization error %s",e.toString());
  //ui.alert("oops","Didnt find it");
  //initializeOrder();
  //}
@@ -184,6 +184,9 @@ function binarySearch(searchElement, searchArray) {
 */
 function inputBox()
 {
+  scanForOrders();
+  generateDocs();
+  /**
 var ui = SpreadsheetApp.getUi();//for the ui
 // Display a dialog box with a title, message, input field, and "Yes" and "No" buttons. The
  // user can also close the dialog by clicking the close button in its title bar.
@@ -218,10 +221,10 @@ else
 }
 }
 else if (response.getSelectedButton() == ui.Button.CANCEL) {
-   Logger.log('User cancelled the process');
+   //Logger.log('User cancelled the process');
  } else {
-   Logger.log('The user clicked the close button in the dialog\'s title bar.');
- }
+   //Logger.log('The user clicked the close button in the dialog\'s title bar.');
+ }*/
 }
 /**
 * Generates individual order documents on google drive
@@ -256,6 +259,7 @@ for(var i=startRow; i<data.length; i++)
  }
  else if(data[i][d15start])
  {
+   Logger.log("Generating for $15 customer"+data[i][d15start]);
  for(var x=d15start; x<=(d15start+items15-1); x++){
  items.push(data[i][x]);
  //body.appendListItem(data[i][x]);
@@ -281,7 +285,7 @@ for(var i=startRow; i<data.length; i++)
  for(var f=0; f<finalList.length;f++)
  {
  body.appendListItem(finalList[f][0]+"   x "+finalList[f][1]).setGlyphType(DocumentApp.GlyphType.SQUARE_BULLET);
- Logger.log("%s x %s",finalList[f][0],finalList[f][1]);
+ //Logger.log("%s x %s",finalList[f][0],finalList[f][1]);
  }
  finalList=new Array();
  items=new Array();
